@@ -1,0 +1,66 @@
+#!/bin/sh
+
+# PROVIDE: forever
+# REQUIRE: NETWORKING SERVERS DAEMON
+# BEFORE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="kibana"
+forever="%%PREFIX%%/bin/node /usr/local/bin/forever"
+: ${kibana_workdir="%%PREFIX%%/kibana/src/server/bin"}
+: ${kibana_script="kibana.js"}
+: ${kibana_pidfile=/var/run/$name.pid}
+: ${kibana_logfile=/var/log/kibana/$name.log}
+: ${kibana_foreverdir=/var/run/forever}
+: ${kibana_minUptime:=1000}
+: ${kibana_spinSleepTime:=1000}
+: ${kibana_user:=www}
+: ${kibana_group:=www}
+
+rcvar=kibana_enable
+extra_commands="status"
+
+start_precmd="kibana_precmd"
+status_cmd="kibana_status"
+start_cmd="kibana_start"
+stop_cmd="kibana_stop"
+restart_cmd="kibana_restart"
+
+load_rc_config $name
+eval "${rcvar}=\${${rcvar}:-'NO'}"
+
+HOME=/var/run/forever
+
+kibana_precmd() {
+        touch ${kibana_pidfile}
+        /usr/bin/install -d -o ${kibana_user} -g ${kibana_group} -m 750 /var/log/kibana
+        /usr/bin/install -d -o ${kibana_user} -g ${kibana_group} -m 750 /var/run/forever
+        chown ${kibana_user}:${kibana_group} ${kibana_pidfile}
+}
+
+kibana_start()
+{
+ su -m ${kibana_user} -c "exec ${forever} start --uid "${name}" -p ${kibana_foreverdir} \
+  --minUptime ${kibana_minUptime} --spinSleepTime {kibana_spinSleepTime} \
+  --pidFile ${kibana_pidfile} -l ${kibana_logfile} -o /dev/null -e ${kibana_logfile} \
+  -a -d  ${kibana_workdir}/${kibana_script}"
+}
+
+kibana_status()
+{
+su -m ${kibana_user} -c "${forever} list"
+}
+
+kibana_stop()
+{
+su -m ${kibana_user} -c "${forever} stop ${name}"
+}
+
+kibana_restart()
+{
+su -m ${kibana_user} -c "${forever} restart ${name}"
+}
+
+run_rc_command "$1"

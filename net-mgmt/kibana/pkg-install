@@ -1,0 +1,46 @@
+#!/bin/sh
+
+if [ "$2" == "POST-INSTALL" ];
+then
+echo ""
+echo "################################"
+echo "# Kibana POST-INSTALL START    #"
+echo "################################"
+echo ""
+cd /usr/local/kibana
+echo ""
+echo "################################"
+echo "# Installing bower & grunt-cli #"
+echo "################################"
+echo ""
+npm install -g bower grunt-cli
+echo ""
+echo "################################"
+echo "# Installing forever           #"
+echo "################################"
+echo ""
+npm install -g forever
+echo ""
+echo "################################"
+echo "# Running local npm install    #"
+echo "################################"
+echo ""
+npm install
+echo ""
+echo "################################"
+echo "# Running local bower install  #"
+echo "################################"
+echo ""
+bower --allow-root install
+echo ""
+echo "################################"
+echo "# Running local grunt          #"
+echo "################################"
+echo ""
+grunt
+echo ""
+echo "################################"
+echo "# Kibana POST-INSTALL DONE     #"
+echo "################################"
+echo ""
+fi
